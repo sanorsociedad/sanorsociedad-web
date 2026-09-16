@@ -23,29 +23,37 @@ Ya están creadas en tu Drive (carpeta **Pagina Web**) las carpetas:
 - `Fotos Productos/<categoría>` — subí ahí las fotos de cada producto. El nombre del archivo debe **empezar con el código del producto** (ej: `1024_frente.jpg`).
 - `Lista de Precios` — subí ahí el Excel/PDF con la lista de precios. Cada vez que la actualices, subí el archivo nuevo a esa carpeta (podés borrar el viejo o dejarlo, el sitio siempre toma el más reciente).
 
-Faltan crear los dos Google Sheets (te los mandé como archivos `.xlsx` para que subas a Drive y abras con "Abrir con → Google Sheets"):
-- **Catalogo Sanor**: una pestaña por categoría, con columnas Código / Nombre / Descripción / Medidas / Activo.
-- **Accesos Clientes Sanor**: pestaña "Clientes" con columnas Usuario / Contraseña / Nombre-Empresa / Activo.
+Los dos Google Sheets ya están creados y sus IDs ya están cargados en `apps-script/Code.gs` (`Catalogo_Sanor` y `Accesos_Clientes_Sanor`, dentro de la carpeta **Pagina Web**).
 
-Una vez creados, copiá el **ID de cada Sheet** (está en la URL: `https://docs.google.com/spreadsheets/d/ESTE_ES_EL_ID/edit`).
+### Agregar una categoría nueva (sin tocar código)
+
+El sitio lee **todas las pestañas** del Sheets del catálogo automáticamente, y busca las fotos de cada categoría por **nombre de carpeta**, no por una lista fija. Para sumar una categoría nueva:
+
+1. En el Sheets "Catalogo_Sanor", agregá una pestaña nueva con el nombre de la categoría (copiá el formato de columnas de cualquier otra pestaña: Código / Nombre / Descripción / Medidas / Activo).
+2. Dentro de la carpeta de Drive `Fotos Productos`, creá una subcarpeta con el **mismo nombre exacto** de la pestaña, y subí ahí las fotos.
+
+Con eso alcanza — la próxima vez que alguien entre al catálogo, la categoría nueva va a aparecer sola, sin avisarle a nadie ni tocar el código. (Si el nombre de la carpeta no coincide exactamente con el de la pestaña, los productos van a aparecer pero sin fotos.)
 
 ## 2. Desplegar el backend (Google Apps Script)
 
-1. Andá a [script.google.com](https://script.google.com) con la cuenta `sanor.sociedad@gmail.com` → **Nuevo proyecto**.
-2. Borrá el contenido default y pegá el contenido de `apps-script/Code.gs`.
-3. Completá en el objeto `CONFIG`:
-   - `CATALOG_SHEET_ID`: el ID del Sheets "Catalogo Sanor".
-   - `LOGIN_SHEET_ID`: el ID del Sheets "Accesos Clientes Sanor".
-   - `TOKEN_SECRET`: cambialo por cualquier texto random propio (es la clave que firma las sesiones de clientes).
-4. Guardá el proyecto (nombralo "Sanor Backend").
-5. **Implementar → Nueva implementación**:
-   - Tipo: **Aplicación web**.
-   - Ejecutar como: **Yo** (tu cuenta).
-   - Quién tiene acceso: **Cualquier usuario**.
-6. Autorizá los permisos que pida (acceso a Sheets y Drive de esa cuenta).
-7. Copiá la **URL de la aplicación web** que te da (termina en `/exec`).
+Esto conecta el sitio con tus Sheets y Drive. Se hace **una sola vez**; después el sitio funciona solo. Son ~10 minutos.
 
-Cada vez que edites `Code.gs` tenés que hacer **Implementar → Administrar implementaciones → Editar (lápiz) → Nueva versión → Implementar** para que los cambios se apliquen.
+1. Con el navegador logueado en `sanor.sociedad@gmail.com`, entrá a **script.google.com**.
+2. Arriba a la izquierda, hacé clic en **"+ Nuevo proyecto"**.
+3. Vas a ver un editor de código con un archivo `Código.gs` que dice `function myFunction() {}`. Seleccioná todo ese texto (Ctrl+A) y borralo.
+4. Abrí el archivo `apps-script/Code.gs` de este repositorio, copiá **todo** su contenido, y pegalo en el editor de script.google.com.
+5. Arriba, donde dice "Proyecto sin título", hacé clic y ponele de nombre **"Sanor Backend"**.
+6. Guardá con el ícono de disquete (o Ctrl+S).
+7. Arriba a la derecha, hacé clic en el botón azul **"Implementar"** → **"Nueva implementación"**.
+8. Al lado de "Seleccionar tipo", hacé clic en el ícono de engranaje ⚙️ y elegí **"Aplicación web"**.
+9. Completá:
+   - **Ejecutar como:** Yo (`sanor.sociedad@gmail.com`)
+   - **Quién tiene acceso:** Cualquier usuario
+10. Hacé clic en **"Implementar"**.
+11. Te va a pedir autorizar permisos: elegí tu cuenta, hacé clic en "Avanzado" si aparece una advertencia, y "Ir a Sanor Backend (no seguro)" — es normal, es tu propio script. Aceptá los permisos de Sheets y Drive.
+12. Te va a mostrar una **URL de la aplicación web** que termina en `/exec`. **Copiala**, es la que necesitás para el paso 3.
+
+Si en el futuro modificás `apps-script/Code.gs` (por ejemplo si yo te paso una versión actualizada), tenés que volver a script.google.com, pegar el código nuevo, y hacer **Implementar → Administrar implementaciones → ícono de lápiz ✏️ → Versión: Nueva versión → Implementar** (la URL no cambia).
 
 ## 3. Conectar el frontend al backend
 
@@ -81,4 +89,4 @@ Una vez elegido el hosting definitivo, hay que cambiar los registros DNS del dom
 
 Abrazaderas, Accesorios Agua, Accesorios Baño, Accesorios Geriátricos, Accesorios Gas, Broncería cromada, Cabezales, Volantes y Campanas, Flexibles, Flotantes y Boyas, Grampas, Grifería, Mensulas, Nichos con Puerta, Puertas Agua, Puertas gas, Rejas piso, Rejas Ventilación, Soportes, Tapa Camaras, Tornillos y Bulones, Torniquetes.
 
-Si agregás una categoría nueva, sumala también en `assets/js/config.js` (`CATEGORIES`) y como pestaña nueva en el Sheets del catálogo.
+Categorías nuevas se agregan solo en Sheets + Drive (ver sección 1), no hace falta tocar código. `assets/js/config.js` (`CATEGORIES`/`FEATURED_CATEGORIES`) solo se usa como respaldo visual antes de que el Apps Script esté conectado y para elegir qué 6 categorías se destacan en la home — no limita qué categorías puede tener el catálogo.

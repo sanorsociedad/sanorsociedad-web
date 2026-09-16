@@ -5,41 +5,15 @@
  */
 
 const CONFIG = {
-  // TODO: completar con el ID del Google Sheets "Catalogo Sanor" (una vez creado desde la plantilla).
-  CATALOG_SHEET_ID: "PEGAR_AQUI_EL_ID_DEL_SHEETS_CATALOGO",
-  // TODO: completar con el ID del Google Sheets "Accesos Clientes Sanor".
-  LOGIN_SHEET_ID: "PEGAR_AQUI_EL_ID_DEL_SHEETS_CLIENTES",
+  CATALOG_SHEET_ID: "1oQpvLW3zWjbl0IS0LXUSwNSBO1xLceta9RyPLtk1ttA",
+  LOGIN_SHEET_ID: "1S46uGvaOLZZAWIg1IE3KYdctB5a2yTStRctEgy8Jr3c",
+  // Carpeta "Fotos Productos" (contiene una subcarpeta por categoría).
+  FOTOS_PRODUCTOS_FOLDER_ID: "1YHp2OAtz7ecb9KMIHkGoVEXEGPyQt_Qr",
   // Carpeta de Drive donde se sube la última lista de precios (reemplazar el archivo, no la carpeta).
   PRICELIST_FOLDER_ID: "1bL0JCeUVHgXbQF_wJmxI2ZbSULAIkUw-",
   // Secreto usado para firmar los tokens de sesión de clientes. Cambiarlo por un valor propio.
   TOKEN_SECRET: "sanor-cambiar-este-secreto",
   TOKEN_TTL_MS: 1000 * 60 * 60 * 12, // 12 horas
-
-  // Carpetas de Drive con las fotos de cada categoría (Fotos Productos/<categoria>).
-  CATEGORY_FOLDERS: {
-    "Abrazaderas": "1wX2dXWK-osuuuJITQ4CjJiVrPWJqgMWB",
-    "Accesorios Agua": "1dYSL4Xs5VYXyocYi8j0dt0rpYIMMs-Jb",
-    "Accesorios Baño": "10Xyo9NiZycW4WRFy3o4T2TCEpXwW4fY_",
-    "Accesorios Geriatricos": "1ZHHgy25AoqZruEG3fEmv-koASFRX1o2o",
-    "Accesorios Gas": "1InshVnKqe_Om6ZfcCuhIZyj67X_1Lj7c",
-    "Broncería cromada": "1Ske_IHVxsTpkKo0CX4TweTYsDDMQN_np",
-    "Cabezales": "1sEquNLw0sMF6aiZyo8UA5FUFWMGOxd_k",
-    "Volantes y Campanas": "1VFTMYhUWIJndDveGT6-jGFrK-bb8RKfD",
-    "Flexibles": "1s2XpbQkTZ2cwkbQKGAop-y7CmiXu9kVa",
-    "Flotantes y Boyas": "19J5uBHqmheIMTp64kPjCx-68FqOY51OB",
-    "Grampas": "12MGlgkLliLFSy8egVaNzl4CpiKesr57f",
-    "Grifería": "1QgELqksntStOmwJ9nJ7cLRd34Yvq9P8n",
-    "Mensulas": "11EqnfxhoJyCjmB6Bzf1Aj7ErWoQboOSG",
-    "Nichos con Puerta": "1SGneOjg3QNvAjcETL46PKxvzU2hA5cMm",
-    "Puertas Agua": "1jp8YojNQFuXYNOTcnwbj40mVSunMZXP2",
-    "Puertas gas": "1HHgdXkaIBxTmCXoQvHHXies4XAxS8nt2",
-    "Rejas piso": "1dYiaUO9iF14y-upP-zYm8z24GJiXFatS",
-    "Rejas Ventilación": "1tUBf7K9sO4Sv-5uNgd8cN7NuocVk961O",
-    "Soportes": "1GQXFUUTB7S1RENO5_SXNEHQQmxsnCpj0",
-    "Tapa Camaras": "1g0Ye8Uej9ajBNk3dBmQoGaX1LC6Lmsq0",
-    "Tornillos y Bulones": "1KVa194b7OGV_FtG84mbc7Hj9UMOSBgDd",
-    "Torniquetes": "1mhyOYqG1T-5eJWAz4d01_9YX2x37M-ae",
-  },
 };
 
 function doGet(e) {
@@ -102,21 +76,26 @@ function buildCatalog() {
   return { ok: true, categories: categories, products: products };
 }
 
-function getProductImages(categoria, codigo, cache) {
-  const folderId = CONFIG.CATEGORY_FOLDERS[categoria];
-  if (!folderId) return [];
+function getCategoryFolder(categoria) {
+  const parent = DriveApp.getFolderById(CONFIG.FOTOS_PRODUCTOS_FOLDER_ID);
+  const matches = parent.getFoldersByName(categoria);
+  return matches.hasNext() ? matches.next() : null;
+}
 
+function getProductImages(categoria, codigo, cache) {
   if (!cache[categoria]) {
     cache[categoria] = {};
-    const folder = DriveApp.getFolderById(folderId);
-    const files = folder.getFiles();
-    while (files.hasNext()) {
-      const file = files.next();
-      const fileName = file.getName();
-      const match = fileName.match(/^([^_.\s]+)/); // primer bloque antes de "_", espacio o "."
-      const fileCode = match ? match[1] : fileName;
-      if (!cache[categoria][fileCode]) cache[categoria][fileCode] = [];
-      cache[categoria][fileCode].push(file);
+    const folder = getCategoryFolder(categoria);
+    if (folder) {
+      const files = folder.getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        const fileName = file.getName();
+        const match = fileName.match(/^([^_.\s]+)/); // primer bloque antes de "_", espacio o "."
+        const fileCode = match ? match[1] : fileName;
+        if (!cache[categoria][fileCode]) cache[categoria][fileCode] = [];
+        cache[categoria][fileCode].push(file);
+      }
     }
   }
 
