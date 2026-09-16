@@ -1,7 +1,8 @@
 // Configuración global del sitio Sanor.
 // Reemplazar APPS_SCRIPT_URL por la URL de implementación del Google Apps Script (ver apps-script/README.md).
 const SANOR_CONFIG = {
-  APPS_SCRIPT_URL: "PEGAR_AQUI_LA_URL_DEL_APPS_SCRIPT",
+  APPS_SCRIPT_URL:
+    "https://script.google.com/macros/s/AKfycbyvn8Alatx4zWMy0WObxUUvdL4Shq4IkcjIz6vV-5AlGonX_r3bLf-YyQU9KrtXH5tA/exec",
   WHATSAPP_NUMBER: "5491150998693",
   WHATSAPP_MESSAGE: "Hola! Quería consultar por un producto de Sanor.",
   CONTACT_EMAIL: "sanitariosnorte@gmail.com",
