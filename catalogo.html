@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo — Sanor</title>
+<meta name="description" content="Catálogo completo de productos sanitarios Sanor, organizado por categoría.">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header id="site-header" class="site-header"></header>
+
+<section class="section">
+  <div class="container">
+    <h1 class="section-title" style="text-align:left;margin-bottom:24px;">Catálogo de productos</h1>
+    <div class="catalog-layout">
+      <aside class="catalog-filters">
+        <h3>Categorías</h3>
+        <ul id="category-list"></ul>
+      </aside>
+      <div>
+        <div id="product-grid" class="product-grid"></div>
+        <div id="empty-state" class="empty-state" style="display:none;">No encontramos productos en esta categoría todavía.</div>
+        <div id="loading" class="loading">Cargando catálogo…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/catalogo.js"></script>
+</body>
+</html>
