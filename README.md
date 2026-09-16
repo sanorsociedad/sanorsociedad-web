@@ -34,6 +34,15 @@ El sitio lee **todas las pestañas** del Sheets del catálogo automáticamente, 
 
 Con eso alcanza — la próxima vez que alguien entre al catálogo, la categoría nueva va a aparecer sola, sin avisarle a nadie ni tocar el código. (Si el nombre de la carpeta no coincide exactamente con el de la pestaña, los productos van a aparecer pero sin fotos.)
 
+### Por qué el catálogo tarda un poco en cargar (y cómo forzar que se actualice ya)
+
+El catálogo se guarda en caché por **10 minutos** después de la primera visita del día (así no hay que releer todos los Sheets y revisar los permisos de cada foto en Drive cada vez que alguien entra — eso es lo que lo hacía lento). Efectos de esto:
+
+- La primera visita después de 10 minutos sin uso puede tardar unos segundos. El resto, hasta que venza el caché, carga rápido.
+- Si acabás de agregar/editar un producto o subir una foto y querés verlo **ya mismo** sin esperar los 10 minutos, abrí esta URL en el navegador (con tu propia URL del Apps Script):
+  `TU_URL_DEL_APPS_SCRIPT/exec?action=refreshcatalog`
+  Eso limpia el caché y arma el catálogo de nuevo al toque.
+
 ## 2. Desplegar el backend (Google Apps Script)
 
 Esto conecta el sitio con tus Sheets y Drive. Se hace **una sola vez**; después el sitio funciona solo. Son ~10 minutos.

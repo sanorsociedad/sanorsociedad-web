@@ -14,14 +14,21 @@ const CONFIG = {
   // Secreto usado para firmar los tokens de sesión de clientes. Cambiarlo por un valor propio.
   TOKEN_SECRET: "sanor-cambiar-este-secreto",
   TOKEN_TTL_MS: 1000 * 60 * 60 * 12, // 12 horas
+  // Cuánto tiempo se guarda en caché el catálogo armado (evita releer Sheets/Drive en cada visita).
+  CATALOG_CACHE_TTL_SECONDS: 600, // 10 minutos
 };
+
+const CATALOG_CACHE_KEY = "sanor_catalog_v1_";
 
 function doGet(e) {
   const action = (e.parameter.action || "").toLowerCase();
   try {
     switch (action) {
       case "catalog":
-        return jsonOutput(buildCatalog());
+        return jsonOutput(getCatalogCached());
+      case "refreshcatalog":
+        clearCatalogCache();
+        return jsonOutput(getCatalogCached());
       case "login":
         return jsonOutput(handleLogin(e.parameter.usuario, e.parameter.password));
       case "pricelist":
@@ -41,6 +48,57 @@ function jsonOutput(obj) {
 }
 
 /* ============ Catálogo ============ */
+
+function getCatalogCached() {
+  const cache = CacheService.getScriptCache();
+  const cached = readCatalogCache(cache);
+  if (cached) return cached;
+
+  const data = buildCatalog();
+  writeCatalogCache(cache, data);
+  return data;
+}
+
+function clearCatalogCache() {
+  const cache = CacheService.getScriptCache();
+  const countStr = cache.get(CATALOG_CACHE_KEY + "count");
+  if (!countStr) return;
+  const count = Number(countStr);
+  const keys = [CATALOG_CACHE_KEY + "count"];
+  for (let i = 0; i < count; i++) keys.push(CATALOG_CACHE_KEY + i);
+  cache.removeAll(keys);
+}
+
+function readCatalogCache(cache) {
+  const countStr = cache.get(CATALOG_CACHE_KEY + "count");
+  if (!countStr) return null;
+  const count = Number(countStr);
+  const parts = [];
+  for (let i = 0; i < count; i++) {
+    const part = cache.get(CATALOG_CACHE_KEY + i);
+    if (part == null) return null; // algún fragmento venció, reconstruimos todo
+    parts.push(part);
+  }
+  try {
+    return JSON.parse(parts.join(""));
+  } catch (err) {
+    return null;
+  }
+}
+
+function writeCatalogCache(cache, data) {
+  const json = JSON.stringify(data);
+  const CHUNK_SIZE = 90000; // margen bajo el límite de 100KB por clave de CacheService
+  const chunks = [];
+  for (let i = 0; i < json.length; i += CHUNK_SIZE) {
+    chunks.push(json.slice(i, i + CHUNK_SIZE));
+  }
+  const entries = { [CATALOG_CACHE_KEY + "count"]: String(chunks.length) };
+  chunks.forEach((chunk, i) => {
+    entries[CATALOG_CACHE_KEY + i] = chunk;
+  });
+  cache.putAll(entries, CONFIG.CATALOG_CACHE_TTL_SECONDS);
+}
 
 function buildCatalog() {
   const ss = SpreadsheetApp.openById(CONFIG.CATALOG_SHEET_ID);
