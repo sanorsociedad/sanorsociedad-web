@@ -38,11 +38,15 @@
       `
       : `<div class="product-gallery-main"><span style="font-size:3rem;">🔧</span></div>`;
 
+    const codigosDisplay = escapeHtml(
+      (p.codigos && p.codigos.length ? p.codigos : [p.codigo]).join(", ")
+    );
+
     document.getElementById("product-content").outerHTML = `
       <div id="product-content" class="product-detail">
         ${gallery}
         <div>
-          <div class="product-detail-code">Código ${escapeHtml(p.codigo)}</div>
+          <div class="product-detail-code">Código ${codigosDisplay}</div>
           <h1>${nombreSafe}</h1>
           <div class="detail-row">
             <div class="label">Categoría</div>

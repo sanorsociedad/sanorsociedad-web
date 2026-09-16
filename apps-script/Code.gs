@@ -119,20 +119,29 @@ function buildCatalog() {
 
     const values = sheet.getDataRange().getValues();
     for (let i = 1; i < values.length; i++) {
-      const [codigo, nombre, descripcion, medidas, activo] = values[i];
-      if (!codigo) continue;
+      const [codigoCell, nombre, descripcion, medidas, activo] = values[i];
+      if (!codigoCell) continue;
       const isActive = String(activo || "").trim().toUpperCase() === "SI";
       if (!isActive) continue;
 
-      const images = getProductImages(
-        name,
-        String(codigo).trim(),
-        imageCache,
-        verified,
-        newlyVerified
-      );
+      // La celda Código puede tener uno o varios códigos (separados por salto de
+      // línea o coma) cuando una misma publicación agrupa varias medidas/variantes.
+      const codigoRaw = String(codigoCell).trim();
+      const codigos = codigoRaw
+        .split(/[\n,]+/)
+        .map((c) => c.trim())
+        .filter(Boolean);
+
+      const images = [];
+      codigos.forEach((c) => {
+        getProductImages(name, c, imageCache, verified, newlyVerified).forEach((url) => {
+          if (images.indexOf(url) === -1) images.push(url);
+        });
+      });
+
       products.push({
-        codigo: String(codigo).trim(),
+        codigo: codigoRaw,
+        codigos: codigos,
         nombre: String(nombre || "").trim(),
         descripcion: String(descripcion || "").trim(),
         medidas: String(medidas || "").trim(),

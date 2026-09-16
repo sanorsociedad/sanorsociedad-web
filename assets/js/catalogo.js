@@ -22,13 +22,14 @@
     const img = p.images && p.images.length
       ? `<img src="${p.images[0]}" alt="${p.nombre}" loading="lazy">`
       : `<div style="font-size:2rem;">🔧</div>`;
+    const codigosDisplay = (p.codigos && p.codigos.length ? p.codigos : [p.codigo]).join(", ");
     return `
       <a class="product-card" href="producto.html?categoria=${encodeURIComponent(
         p.categoria
       )}&codigo=${encodeURIComponent(p.codigo)}">
         <div class="product-image">${img}</div>
         <div class="product-info">
-          <div class="product-code">Cód. ${p.codigo}</div>
+          <div class="product-code">Cód. ${codigosDisplay}</div>
           <div class="product-name">${p.nombre}</div>
           <div class="product-category">${p.categoria}</div>
         </div>
