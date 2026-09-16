@@ -168,6 +168,7 @@ img {
   opacity: 0.92;
   max-width: 640px;
   margin: 0 auto;
+  text-wrap: balance;
 }
 
 .hero-badge {
@@ -473,6 +474,10 @@ img {
   letter-spacing: 0.03em;
   color: var(--color-text-soft);
   margin-bottom: 4px;
+}
+
+.multiline {
+  white-space: pre-line;
 }
 
 .back-link {

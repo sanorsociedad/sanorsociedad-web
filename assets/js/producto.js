@@ -4,23 +4,30 @@
     return new URLSearchParams(window.location.search).get(name);
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+
   function render(p) {
     document.getElementById("page-title").textContent = `${p.nombre} — Sanor`;
     const images = p.images && p.images.length ? p.images : [];
     const mainImage = images[0];
+    const nombreSafe = escapeHtml(p.nombre);
 
     const gallery = mainImage
       ? `
         <div>
           <div class="product-gallery-main">
-            <img id="main-image" src="${mainImage}" alt="${p.nombre}">
+            <img id="main-image" src="${mainImage}" alt="${nombreSafe}">
           </div>
           ${
             images.length > 1
               ? `<div class="product-gallery-thumbs">${images
                   .map(
                     (src, i) =>
-                      `<img src="${src}" alt="${p.nombre} foto ${i + 1}" class="${
+                      `<img src="${src}" alt="${nombreSafe} foto ${i + 1}" class="${
                         i === 0 ? "active" : ""
                       }" data-src="${src}">`
                   )
@@ -35,28 +42,28 @@
       <div id="product-content" class="product-detail">
         ${gallery}
         <div>
-          <div class="product-detail-code">Código ${p.codigo}</div>
-          <h1>${p.nombre}</h1>
+          <div class="product-detail-code">Código ${escapeHtml(p.codigo)}</div>
+          <h1>${nombreSafe}</h1>
           <div class="detail-row">
             <div class="label">Categoría</div>
-            <div><a href="catalogo.html?categoria=${encodeURIComponent(p.categoria)}">${p.categoria}</a></div>
+            <div><a href="catalogo.html?categoria=${encodeURIComponent(p.categoria)}">${escapeHtml(
+      p.categoria
+    )}</a></div>
           </div>
           ${
             p.descripcion
-              ? `<div class="detail-row"><div class="label">Descripción</div><div>${p.descripcion}</div></div>`
+              ? `<div class="detail-row"><div class="label">Descripción</div><div class="multiline">${escapeHtml(
+                  p.descripcion
+                )}</div></div>`
               : ""
           }
           ${
             p.medidas
-              ? `<div class="detail-row"><div class="label">Medidas</div><div>${p.medidas}</div></div>`
+              ? `<div class="detail-row"><div class="label">Medidas</div><div class="multiline">${escapeHtml(
+                  p.medidas
+                )}</div></div>`
               : ""
           }
-          <div class="detail-row">
-            <a class="btn btn-primary" target="_blank" rel="noopener"
-               href="https://wa.me/${SANOR_CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(
-      `Hola! Quería consultar por el producto ${p.codigo} - ${p.nombre}`
-    )}">Consultar por WhatsApp</a>
-          </div>
         </div>
       </div>
     `;

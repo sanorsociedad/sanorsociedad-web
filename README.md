@@ -34,14 +34,28 @@ El sitio lee **todas las pestañas** del Sheets del catálogo automáticamente, 
 
 Con eso alcanza — la próxima vez que alguien entre al catálogo, la categoría nueva va a aparecer sola, sin avisarle a nadie ni tocar el código. (Si el nombre de la carpeta no coincide exactamente con el de la pestaña, los productos van a aparecer pero sin fotos.)
 
-### Por qué el catálogo tarda un poco en cargar (y cómo forzar que se actualice ya)
+### Por qué el catálogo puede tardar un poco en cargar (y cómo forzar que se actualice ya)
 
-El catálogo se guarda en caché por **10 minutos** después de la primera visita del día (así no hay que releer todos los Sheets y revisar los permisos de cada foto en Drive cada vez que alguien entra — eso es lo que lo hacía lento). Efectos de esto:
+El catálogo se guarda en caché por **30 minutos**, y además el script recuerda qué fotos ya verificó como públicas (no vuelve a chequear los permisos de una foto que ya confirmó antes). Efectos de esto:
 
-- La primera visita después de 10 minutos sin uso puede tardar unos segundos. El resto, hasta que venza el caché, carga rápido.
-- Si acabás de agregar/editar un producto o subir una foto y querés verlo **ya mismo** sin esperar los 10 minutos, abrí esta URL en el navegador (con tu propia URL del Apps Script):
+- Solo la primera vez que se ve cada foto nueva puede tardar un poco más (tiene que hacerla pública en Drive). Las visitas siguientes, y las fotos ya vistas antes, cargan rápido.
+- Si acabás de agregar/editar un producto o subir una foto y querés verlo **ya mismo** sin esperar los 30 minutos, abrí esta URL en el navegador (con tu propia URL del Apps Script):
   `TU_URL_DEL_APPS_SCRIPT/exec?action=refreshcatalog`
   Eso limpia el caché y arma el catálogo de nuevo al toque.
+- **Importante:** cada vez que actualices `Code.gs` con una mejora nueva, tenés que volver a hacer **Implementar → Administrar implementaciones → lápiz ✏️ → Nueva versión → Implementar** (paso 2) — si no, el sitio sigue usando la versión vieja del código aunque lo hayas pegado en el editor.
+
+### Productos con varias medidas/variantes en una sola publicación
+
+El campo **Medidas** admite texto libre con varios renglones (Enter dentro de la celda de Sheets = renglón nuevo, se respeta tal cual en la web). Para un producto que viene en varias medidas bajo un mismo código "familia" (ej. flexibles de gas), cargá una sola fila con todas las variantes listadas, una por renglón, por ejemplo:
+
+```
+Código 8060 – 1/2" 20-42cm
+Código 8061 – 1/2" 40-90cm
+Código 8062 – 3/4" 20-42cm
+Código 8063 – 3/4" 40-90cm
+```
+
+Así queda todo junto en una sola ficha de producto. (Para cargar un salto de línea dentro de una celda de Sheets: `Alt+Enter` en Windows, `Cmd+Enter` en Mac.)
 
 ## 2. Desplegar el backend (Google Apps Script)
 

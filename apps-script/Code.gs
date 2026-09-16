@@ -15,7 +15,7 @@ const CONFIG = {
   TOKEN_SECRET: "sanor-cambiar-este-secreto",
   TOKEN_TTL_MS: 1000 * 60 * 60 * 12, // 12 horas
   // Cuánto tiempo se guarda en caché el catálogo armado (evita releer Sheets/Drive en cada visita).
-  CATALOG_CACHE_TTL_SECONDS: 600, // 10 minutos
+  CATALOG_CACHE_TTL_SECONDS: 1800, // 30 minutos
 };
 
 const CATALOG_CACHE_KEY = "sanor_catalog_v1_";
@@ -105,7 +105,12 @@ function buildCatalog() {
   const sheets = ss.getSheets();
   const categories = [];
   const products = [];
-  const imageCache = {}; // categoria -> { CODIGO: [urls] }
+  const imageCache = {}; // categoria -> { CODIGO: [file, ...] }
+  // Fotos ya confirmadas como públicas en corridas anteriores: evita volver a
+  // consultarle el permiso a Drive por cada foto en cada reconstrucción del caché.
+  const verifiedProps = PropertiesService.getScriptProperties();
+  const verified = verifiedProps.getProperties();
+  const newlyVerified = {};
 
   sheets.forEach((sheet) => {
     const name = sheet.getName();
@@ -119,7 +124,13 @@ function buildCatalog() {
       const isActive = String(activo || "").trim().toUpperCase() === "SI";
       if (!isActive) continue;
 
-      const images = getProductImages(name, String(codigo).trim(), imageCache);
+      const images = getProductImages(
+        name,
+        String(codigo).trim(),
+        imageCache,
+        verified,
+        newlyVerified
+      );
       products.push({
         codigo: String(codigo).trim(),
         nombre: String(nombre || "").trim(),
@@ -131,6 +142,10 @@ function buildCatalog() {
     }
   });
 
+  if (Object.keys(newlyVerified).length) {
+    verifiedProps.setProperties(newlyVerified, false);
+  }
+
   return { ok: true, categories: categories, products: products };
 }
 
@@ -140,7 +155,7 @@ function getCategoryFolder(categoria) {
   return matches.hasNext() ? matches.next() : null;
 }
 
-function getProductImages(categoria, codigo, cache) {
+function getProductImages(categoria, codigo, cache, verified, newlyVerified) {
   if (!cache[categoria]) {
     cache[categoria] = {};
     const folder = getCategoryFolder(categoria);
@@ -159,8 +174,13 @@ function getProductImages(categoria, codigo, cache) {
 
   const matches = cache[categoria][codigo] || [];
   return matches.map((file) => {
-    ensurePublicView(file);
-    return "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w1000";
+    const id = file.getId();
+    if (!verified[id]) {
+      ensurePublicView(file);
+      newlyVerified[id] = "1";
+      verified[id] = "1";
+    }
+    return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1000";
   });
 }
 
