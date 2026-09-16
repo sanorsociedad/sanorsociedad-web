@@ -1,0 +1,34 @@
+name: Deploy Apps Script
+
+on:
+  push:
+    branches: [claude/nueva-pagina-web-h9bann]
+    paths:
+      - "apps-script/**"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar clasp
+        run: npm install -g @google/clasp
+
+      - name: Escribir credenciales de clasp
+        run: echo "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+
+      - name: Subir y desplegar
+        working-directory: apps-script
+        run: |
+          clasp push -f
+          clasp deploy -i "$DEPLOYMENT_ID" -d "Auto-deploy ${{ github.sha }}"
+        env:
+          DEPLOYMENT_ID: AKfycbyvn8Alatx4zWMy0WObxUUvdL4Shq4IkcjIz6vV-5AlGonX_r3bLf-YyQU9KrtXH5tA

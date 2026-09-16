@@ -46,16 +46,24 @@ El catálogo se guarda en caché por **30 minutos**, y además el script recuerd
 
 ### Productos con varias medidas/variantes en una sola publicación
 
-El campo **Medidas** admite texto libre con varios renglones (Enter dentro de la celda de Sheets = renglón nuevo, se respeta tal cual en la web). Para un producto que viene en varias medidas bajo un mismo código "familia" (ej. flexibles de gas), cargá una sola fila con todas las variantes listadas, una por renglón, por ejemplo:
+Una fila puede tener **varios códigos** en la celda **Código** (uno por renglón, con `Alt+Enter` en Windows o `Cmd+Enter` en Mac para el salto de línea dentro de la celda) cuando la publicación agrupa varias medidas del mismo producto — por ejemplo, un flexible de gas que viene en 4 medidas:
 
-```
-Código 8060 – 1/2" 20-42cm
-Código 8061 – 1/2" 40-90cm
-Código 8062 – 3/4" 20-42cm
-Código 8063 – 3/4" 40-90cm
-```
+- **Código:**
+  ```
+  8060
+  8061
+  8062
+  8063
+  ```
+- **Medidas:**
+  ```
+  Código 8060 – 1/2" 20-42cm
+  Código 8061 – 1/2" 40-90cm
+  Código 8062 – 3/4" 20-42cm
+  Código 8063 – 3/4" 40-90cm
+  ```
 
-Así queda todo junto en una sola ficha de producto. (Para cargar un salto de línea dentro de una celda de Sheets: `Alt+Enter` en Windows, `Cmd+Enter` en Mac.)
+El sitio junta automáticamente **todas las fotos de los 4 códigos** en una sola galería de esa publicación (subiendo fotos como `8060_frente.jpg`, `8061_frente.jpg`, etc. en la carpeta de esa categoría).
 
 ## 2. Desplegar el backend (Google Apps Script)
 
@@ -76,7 +84,32 @@ Esto conecta el sitio con tus Sheets y Drive. Se hace **una sola vez**; después
 11. Te va a pedir autorizar permisos: elegí tu cuenta, hacé clic en "Avanzado" si aparece una advertencia, y "Ir a Sanor Backend (no seguro)" — es normal, es tu propio script. Aceptá los permisos de Sheets y Drive.
 12. Te va a mostrar una **URL de la aplicación web** que termina en `/exec`. **Copiala**, es la que necesitás para el paso 3.
 
-Si en el futuro modificás `apps-script/Code.gs` (por ejemplo si yo te paso una versión actualizada), tenés que volver a script.google.com, pegar el código nuevo, y hacer **Implementar → Administrar implementaciones → ícono de lápiz ✏️ → Versión: Nueva versión → Implementar** (la URL no cambia).
+Si en el futuro modificás `apps-script/Code.gs` (por ejemplo si yo te paso una versión actualizada), tenés que volver a script.google.com, pegar el código nuevo, y hacer **Implementar → Administrar implementaciones → ícono de lápiz ✏️ → Versión: Nueva versión → Implementar** (la URL no cambia). Salvo que hayas activado el despliegue automático (siguiente sección) — en ese caso esto pasa solo.
+
+### (Opcional) Despliegue automático con clasp
+
+Para no tener que copiar/pegar el código cada vez, se puede automatizar: cuando se sube un cambio en `apps-script/` a este repositorio, GitHub despliega solo el backend. Es una configuración **única**, con 3 pasos:
+
+**Paso A — En tu computadora (una sola vez):**
+1. Instalá [Node.js](https://nodejs.org) (versión LTS, "Siguiente" en todo el instalador).
+2. Abrí la Terminal (Mac) o el Símbolo del sistema/PowerShell (Windows).
+3. Ejecutá: `npm install -g @google/clasp`
+4. Ejecutá: `clasp login` — se abre el navegador, iniciá sesión con `sanor.sociedad@gmail.com` y aceptá los permisos.
+5. Eso crea un archivo llamado `.clasprc.json` en tu carpeta de usuario (Windows: `C:\Users\TU_USUARIO\.clasprc.json`; Mac: `/Users/TU_USUARIO/.clasprc.json`). Abrilo con el Bloc de notas / TextEdit y copiá **todo** su contenido.
+
+**Paso B — Guardarlo como secreto en GitHub (nunca me pases este contenido a mí ni lo subas al repositorio, es como una contraseña):**
+1. Andá a `github.com/sanorsociedad/sanorsociedad-web` → **Settings** → **Secrets and variables** → **Actions**.
+2. **"New repository secret"**.
+3. Name: `CLASPRC_JSON`
+4. Value: pegá el contenido del `.clasprc.json`.
+5. **Add secret**.
+
+**Paso C — Decirme el Script ID (esto sí es seguro compartirlo, no es una contraseña):**
+1. En script.google.com, abrí "Sanor Backend" → ícono de engranaje ⚙️ ("Configuración del proyecto") en el menú de la izquierda.
+2. Copiá el **"ID de secuencia de comandos"** (un texto largo).
+3. Pasámelo.
+
+Con eso completo la configuración (`apps-script/.clasp.json`) y a partir de ahí, cada actualización que yo suba al backend se despliega sola.
 
 ## 3. Conectar el frontend al backend
 
