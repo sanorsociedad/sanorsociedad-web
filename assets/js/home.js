@@ -43,11 +43,15 @@
     }
     try {
       const data = await SanorAPI.getCatalog();
+      // Respaldo: si una categoría todavía no tiene foto propia en Drive/Categorías,
+      // usamos la primera foto de producto que encontremos en esa categoría.
       data.products.forEach((p) => {
         if (p.images && p.images.length && !imagesByCategory[p.categoria]) {
           imagesByCategory[p.categoria] = p.images[0];
         }
       });
+      // Las fotos dedicadas de categoría (carpeta "Categorías") tienen prioridad.
+      Object.assign(imagesByCategory, data.categoryImages || {});
     } catch (err) {
       console.warn("No se pudo cargar el catálogo para la home:", err);
     }

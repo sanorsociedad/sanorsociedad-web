@@ -9,6 +9,8 @@ const CONFIG = {
   LOGIN_SHEET_ID: "1S46uGvaOLZZAWIg1IE3KYdctB5a2yTStRctEgy8Jr3c",
   // Carpeta "Fotos Productos" (contiene una subcarpeta por categoría).
   FOTOS_PRODUCTOS_FOLDER_ID: "1YHp2OAtz7ecb9KMIHkGoVEXEGPyQt_Qr",
+  // Carpeta "Categorías" (una foto por categoría, nombrada igual que la categoría) para la home.
+  CATEGORY_IMAGES_FOLDER_ID: "1o4Z3JQMpYqzxK01YXA6Q-0WRG0C76K6k",
   // Carpeta de Drive donde se sube la última lista de precios (reemplazar el archivo, no la carpeta).
   PRICELIST_FOLDER_ID: "1bL0JCeUVHgXbQF_wJmxI2ZbSULAIkUw-",
   // Secreto usado para firmar los tokens de sesión de clientes. Cambiarlo por un valor propio.
@@ -152,17 +154,58 @@ function buildCatalog() {
     }
   });
 
+  const categoryImages = getCategoryImages(categories, verified, newlyVerified);
+
   if (Object.keys(newlyVerified).length) {
     verifiedProps.setProperties(newlyVerified, false);
   }
 
-  return { ok: true, categories: categories, products: products };
+  return {
+    ok: true,
+    categories: categories,
+    products: products,
+    categoryImages: categoryImages,
+  };
 }
 
 function getCategoryFolder(categoria) {
   const parent = DriveApp.getFolderById(CONFIG.FOTOS_PRODUCTOS_FOLDER_ID);
   const matches = parent.getFoldersByName(categoria);
   return matches.hasNext() ? matches.next() : null;
+}
+
+// Una foto por categoría (carpeta "Categorías"), nombrada igual que la
+// categoría, usada como imagen destacada en la home.
+function getCategoryImages(categories, verified, newlyVerified) {
+  const result = {};
+  let folder;
+  try {
+    folder = DriveApp.getFolderById(CONFIG.CATEGORY_IMAGES_FOLDER_ID);
+  } catch (err) {
+    return result; // carpeta no configurada todavía: la home usa su respaldo
+  }
+
+  const byName = {};
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    const nameNoExt = file.getName().replace(/\.[^.]+$/, "").trim();
+    byName[nameNoExt] = file;
+  }
+
+  categories.forEach((cat) => {
+    const file = byName[cat];
+    if (!file) return;
+    const id = file.getId();
+    if (!verified[id]) {
+      ensurePublicView(file);
+      newlyVerified[id] = "1";
+      verified[id] = "1";
+    }
+    result[cat] = "https://drive.google.com/thumbnail?id=" + id + "&sz=w800";
+  });
+
+  return result;
 }
 
 function getProductImages(categoria, codigo, cache, verified, newlyVerified) {
