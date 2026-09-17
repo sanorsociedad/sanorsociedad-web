@@ -125,10 +125,11 @@ function buildCatalog() {
       if (!isActive) continue;
 
       // La celda Código puede tener uno o varios códigos (separados por salto de
-      // línea o coma) cuando una misma publicación agrupa varias medidas/variantes.
+      // línea, coma o espacio) cuando una misma publicación agrupa varias
+      // medidas/variantes.
       const codigoRaw = String(codigoCell).trim();
       const codigos = codigoRaw
-        .split(/[\n,]+/)
+        .split(/[\s,]+/)
         .map((c) => c.trim())
         .filter(Boolean);
 
