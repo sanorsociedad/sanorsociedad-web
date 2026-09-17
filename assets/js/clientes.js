@@ -88,6 +88,24 @@
     });
   }
 
+  function setupPasswordToggle() {
+    const toggle = document.getElementById("toggle-password");
+    const input = document.getElementById("password");
+    if (!toggle || !input) return;
+
+    const show = () => (input.type = "text");
+    const hide = () => (input.type = "password");
+
+    toggle.addEventListener("mousedown", show);
+    toggle.addEventListener("touchstart", (e) => {
+      e.preventDefault(); // evita que el toque dispare también un click/foco raro
+      show();
+    });
+    ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach((evt) =>
+      toggle.addEventListener(evt, hide)
+    );
+  }
+
   function setupLogout() {
     document.getElementById("logout-link").addEventListener("click", (e) => {
       e.preventDefault();
@@ -98,6 +116,7 @@
 
   function init() {
     setupLoginForm();
+    setupPasswordToggle();
     setupLogout();
     const session = getSession();
     if (session && session.token) {

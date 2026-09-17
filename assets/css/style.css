@@ -530,6 +530,33 @@ img {
   border-color: var(--color-primary);
 }
 
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 44px;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-soft);
+  cursor: pointer;
+}
+
+.toggle-password:hover {
+  color: var(--color-primary);
+}
+
 .login-error {
   color: #c0392b;
   font-size: 0.88rem;

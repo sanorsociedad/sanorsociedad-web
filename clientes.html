@@ -23,7 +23,15 @@
         </div>
         <div class="field">
           <label for="password">Contraseña</label>
-          <input type="password" id="password" autocomplete="current-password" required>
+          <div class="password-wrap">
+            <input type="password" id="password" autocomplete="current-password" required>
+            <button type="button" id="toggle-password" class="toggle-password" aria-label="Mantené presionado para ver la contraseña">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="login-error" id="login-error"></div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Ingresar</button>
