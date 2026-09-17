@@ -174,6 +174,15 @@ function getCategoryFolder(categoria) {
   return matches.hasNext() ? matches.next() : null;
 }
 
+// Normaliza texto para comparar nombres sin que importen mayúsculas, tildes
+// (con distinta codificación Unicode) ni espacios extra.
+function normalizeKey(s) {
+  return String(s)
+    .normalize("NFC")
+    .trim()
+    .toLowerCase();
+}
+
 // Una foto por categoría (carpeta "Categorías"), nombrada igual que la
 // categoría, usada como imagen destacada en la home.
 function getCategoryImages(categories, verified, newlyVerified) {
@@ -189,12 +198,12 @@ function getCategoryImages(categories, verified, newlyVerified) {
   const files = folder.getFiles();
   while (files.hasNext()) {
     const file = files.next();
-    const nameNoExt = file.getName().replace(/\.[^.]+$/, "").trim();
-    byName[nameNoExt] = file;
+    const nameNoExt = file.getName().replace(/\.[^.]+$/, "");
+    byName[normalizeKey(nameNoExt)] = file;
   }
 
   categories.forEach((cat) => {
-    const file = byName[cat];
+    const file = byName[normalizeKey(cat)];
     if (!file) return;
     const id = file.getId();
     if (!verified[id]) {
