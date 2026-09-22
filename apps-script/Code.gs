@@ -5,9 +5,9 @@
  */
 
 const CONFIG = {
-  CATALOG_SHEET_ID: "1oQpvLW3zWjbl0IS0LXUSwNSBO1xLceta9RyPLtk1ttA",
+  CATALOG_SHEET_ID: "1PCEDI7E_GTFxWLQsVwa8G6m4oGRUKTZRAekqSg1-GTo",
   LOGIN_SHEET_ID: "1S46uGvaOLZZAWIg1IE3KYdctB5a2yTStRctEgy8Jr3c",
-  // Carpeta "Fotos Productos" (contiene una subcarpeta por categoría).
+  // Carpeta "Fotos Productos" (todas las fotos sueltas, sin subcarpetas por categoría).
   FOTOS_PRODUCTOS_FOLDER_ID: "1YHp2OAtz7ecb9KMIHkGoVEXEGPyQt_Qr",
   // Carpeta "Categorías" (una foto por categoría, nombrada igual que la categoría) para la home.
   CATEGORY_IMAGES_FOLDER_ID: "1o4Z3JQMpYqzxK01YXA6Q-0WRG0C76K6k",
@@ -104,55 +104,59 @@ function writeCatalogCache(cache, data) {
 
 function buildCatalog() {
   const ss = SpreadsheetApp.openById(CONFIG.CATALOG_SHEET_ID);
-  const sheets = ss.getSheets();
-  const categories = [];
+  const sheet = ss.getSheetByName("Productos");
   const products = [];
-  const imageCache = {}; // categoria -> { CODIGO: [file, ...] }
+  const categoriesSeen = {};
+  const categories = [];
+  const imageCache = { byCode: null }; // CODIGO -> [file, ...], una sola carpeta plana
   // Fotos ya confirmadas como públicas en corridas anteriores: evita volver a
   // consultarle el permiso a Drive por cada foto en cada reconstrucción del caché.
   const verifiedProps = PropertiesService.getScriptProperties();
   const verified = verifiedProps.getProperties();
   const newlyVerified = {};
 
-  sheets.forEach((sheet) => {
-    const name = sheet.getName();
-    if (name === "Instrucciones") return;
-    categories.push(name);
+  const values = sheet.getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    const [codigoCell, nombre, descripcion, medidas, categoriaCell, activo] = values[i];
+    if (!codigoCell) continue;
+    const isActive = String(activo || "").trim().toUpperCase() === "SI";
+    if (!isActive) continue;
 
-    const values = sheet.getDataRange().getValues();
-    for (let i = 1; i < values.length; i++) {
-      const [codigoCell, nombre, descripcion, medidas, activo] = values[i];
-      if (!codigoCell) continue;
-      const isActive = String(activo || "").trim().toUpperCase() === "SI";
-      if (!isActive) continue;
-
-      // La celda Código puede tener uno o varios códigos (separados por salto de
-      // línea, coma o espacio) cuando una misma publicación agrupa varias
-      // medidas/variantes.
-      const codigoRaw = String(codigoCell).trim();
-      const codigos = codigoRaw
-        .split(/[\s,]+/)
-        .map((c) => c.trim())
-        .filter(Boolean);
-
-      const images = [];
-      codigos.forEach((c) => {
-        getProductImages(name, c, imageCache, verified, newlyVerified).forEach((url) => {
-          if (images.indexOf(url) === -1) images.push(url);
-        });
-      });
-
-      products.push({
-        codigo: codigoRaw,
-        codigos: codigos,
-        nombre: String(nombre || "").trim(),
-        descripcion: String(descripcion || "").trim(),
-        medidas: String(medidas || "").trim(),
-        categoria: name,
-        images: images,
-      });
+    const categoria = String(categoriaCell || "").trim();
+    if (!categoria) continue;
+    if (!categoriesSeen[categoria]) {
+      categoriesSeen[categoria] = true;
+      categories.push(categoria);
     }
-  });
+
+    // La celda Código puede tener uno o varios códigos (separados por salto de
+    // línea, coma o espacio) cuando una misma publicación agrupa varias
+    // medidas/variantes.
+    const codigoRaw = String(codigoCell).trim();
+    const codigos = codigoRaw
+      .split(/[\s,]+/)
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    const images = [];
+    codigos.forEach((c) => {
+      getProductImages(c, imageCache, verified, newlyVerified).forEach((url) => {
+        if (images.indexOf(url) === -1) images.push(url);
+      });
+    });
+
+    products.push({
+      codigo: codigoRaw,
+      codigos: codigos,
+      nombre: String(nombre || "").trim(),
+      descripcion: String(descripcion || "").trim(),
+      medidas: String(medidas || "").trim(),
+      categoria: categoria,
+      images: images,
+    });
+  }
+
+  categories.sort((a, b) => a.localeCompare(b, "es"));
 
   const categoryImages = getCategoryImages(categories, verified, newlyVerified);
 
@@ -166,12 +170,6 @@ function buildCatalog() {
     products: products,
     categoryImages: categoryImages,
   };
-}
-
-function getCategoryFolder(categoria) {
-  const parent = DriveApp.getFolderById(CONFIG.FOTOS_PRODUCTOS_FOLDER_ID);
-  const matches = parent.getFoldersByName(categoria);
-  return matches.hasNext() ? matches.next() : null;
 }
 
 // Normaliza texto para comparar nombres sin que importen mayúsculas, tildes
@@ -217,24 +215,22 @@ function getCategoryImages(categories, verified, newlyVerified) {
   return result;
 }
 
-function getProductImages(categoria, codigo, cache, verified, newlyVerified) {
-  if (!cache[categoria]) {
-    cache[categoria] = {};
-    const folder = getCategoryFolder(categoria);
-    if (folder) {
-      const files = folder.getFiles();
-      while (files.hasNext()) {
-        const file = files.next();
-        const fileName = file.getName();
-        const match = fileName.match(/^([^_.\s]+)/); // primer bloque antes de "_", espacio o "."
-        const fileCode = match ? match[1] : fileName;
-        if (!cache[categoria][fileCode]) cache[categoria][fileCode] = [];
-        cache[categoria][fileCode].push(file);
-      }
+function getProductImages(codigo, cache, verified, newlyVerified) {
+  if (!cache.byCode) {
+    cache.byCode = {};
+    const folder = DriveApp.getFolderById(CONFIG.FOTOS_PRODUCTOS_FOLDER_ID);
+    const files = folder.getFiles();
+    while (files.hasNext()) {
+      const file = files.next();
+      const fileName = file.getName();
+      const match = fileName.match(/^([^_.\s]+)/); // primer bloque antes de "_", espacio o "."
+      const fileCode = match ? match[1] : fileName;
+      if (!cache.byCode[fileCode]) cache.byCode[fileCode] = [];
+      cache.byCode[fileCode].push(file);
     }
   }
 
-  const matches = cache[categoria][codigo] || [];
+  const matches = cache.byCode[codigo] || [];
   return matches.map((file) => {
     const id = file.getId();
     if (!verified[id]) {

@@ -20,19 +20,21 @@ No hay build step: es HTML/CSS/JS plano. Se puede abrir `index.html` directo o s
 ## 1. Cargar los datos en Google Sheets / Drive
 
 Ya están creadas en tu Drive (carpeta **Pagina Web**) las carpetas:
-- `Fotos Productos/<categoría>` — subí ahí las fotos de cada producto. El nombre del archivo debe **empezar con el código del producto** (ej: `1024_frente.jpg`).
+- `Fotos Productos` — subí ahí **todas** las fotos de producto, sueltas (sin subcarpetas por categoría). El nombre del archivo debe **empezar con el código del producto** (ej: `1024_frente.jpg`, `1024_lateral.jpg`).
+- `Categorías` — una foto por categoría, nombrada igual que la categoría (ej: `Grifería.jpg`), para las tarjetas destacadas de la home.
 - `Lista de Precios` — subí ahí el Excel/PDF con la lista de precios. Cada vez que la actualices, subí el archivo nuevo a esa carpeta (podés borrar el viejo o dejarlo, el sitio siempre toma el más reciente).
 
-Los dos Google Sheets ya están creados y sus IDs ya están cargados en `apps-script/Code.gs` (`Catalogo_Sanor` y `Accesos_Clientes_Sanor`, dentro de la carpeta **Pagina Web**).
+El Google Sheets del catálogo (`Catalogo Sanor`) tiene una sola pestaña de datos, **"Productos"**, con columnas: Código, Nombre, Descripción, Medidas, **Categoría**, Activo (SI/NO). Una fila por producto. Su ID ya está cargado en `apps-script/Code.gs`.
 
 ### Agregar una categoría nueva (sin tocar código)
 
-El sitio lee **todas las pestañas** del Sheets del catálogo automáticamente, y busca las fotos de cada categoría por **nombre de carpeta**, no por una lista fija. Para sumar una categoría nueva:
+Las categorías del sitio se arman automáticamente a partir de lo que escribas en la columna **Categoría** de la pestaña "Productos" — no hay una lista fija en ningún lado. Para sumar una categoría nueva alcanza con:
 
-1. En el Sheets "Catalogo_Sanor", agregá una pestaña nueva con el nombre de la categoría (copiá el formato de columnas de cualquier otra pestaña: Código / Nombre / Descripción / Medidas / Activo).
-2. Dentro de la carpeta de Drive `Fotos Productos`, creá una subcarpeta con el **mismo nombre exacto** de la pestaña, y subí ahí las fotos.
+1. Escribir el nombre de la categoría en la columna Categoría de cualquier fila nueva de "Productos".
+2. Subir las fotos de esos productos a `Fotos Productos` (sueltas, nombradas con el código).
+3. (Opcional) Subir una foto a `Categorías` con ese mismo nombre, si querés que aparezca destacada en la home.
 
-Con eso alcanza — la próxima vez que alguien entre al catálogo, la categoría nueva va a aparecer sola, sin avisarle a nadie ni tocar el código. (Si el nombre de la carpeta no coincide exactamente con el de la pestaña, los productos van a aparecer pero sin fotos.)
+Con eso alcanza — la categoría nueva aparece sola la próxima vez que alguien entre al catálogo, sin avisarle a nadie ni tocar código.
 
 ### Por qué el catálogo puede tardar un poco en cargar (y cómo forzar que se actualice ya)
 
@@ -63,7 +65,7 @@ Una fila puede tener **varios códigos** en la celda **Código** (uno por rengl�
   Código 8063 – 3/4" 40-90cm
   ```
 
-El sitio junta automáticamente **todas las fotos de los 4 códigos** en una sola galería de esa publicación (subiendo fotos como `8060_frente.jpg`, `8061_frente.jpg`, etc. en la carpeta de esa categoría).
+El sitio junta automáticamente **todas las fotos de los 4 códigos** en una sola galería de esa publicación (subiendo fotos como `8060_frente.jpg`, `8061_frente.jpg`, etc. a `Fotos Productos`).
 
 ## 2. Desplegar el backend (Google Apps Script)
 
