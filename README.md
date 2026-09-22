@@ -36,15 +36,13 @@ Las categorías del sitio se arman automáticamente a partir de lo que escribas 
 
 Con eso alcanza — la categoría nueva aparece sola la próxima vez que alguien entre al catálogo, sin avisarle a nadie ni tocar código.
 
-### Por qué el catálogo puede tardar un poco en cargar (y cómo forzar que se actualice ya)
+### Los cambios en el Sheets/Drive se ven al instante
 
-El catálogo se guarda en caché por **30 minutos**, y además el script recuerda qué fotos ya verificó como públicas (no vuelve a chequear los permisos de una foto que ya confirmó antes). Efectos de esto:
+El catálogo **no usa caché**: cada visita lee el Sheets y Drive en el momento, así que cualquier producto, categoría o foto que agregues aparece apenas alguien entra a la página, sin esperar ni tener que refrescar nada.
 
-- Solo la primera vez que se ve cada foto nueva puede tardar un poco más (tiene que hacerla pública en Drive). Las visitas siguientes, y las fotos ya vistas antes, cargan rápido.
-- Si acabás de agregar/editar un producto o subir una foto y querés verlo **ya mismo** sin esperar los 30 minutos, abrí esta URL en el navegador (con tu propia URL del Apps Script):
-  `TU_URL_DEL_APPS_SCRIPT/exec?action=refreshcatalog`
-  Eso limpia el caché y arma el catálogo de nuevo al toque.
-- **Importante:** cada vez que actualices `Code.gs` con una mejora nueva, tenés que volver a hacer **Implementar → Administrar implementaciones → lápiz ✏️ → Nueva versión → Implementar** (paso 2) — si no, el sitio sigue usando la versión vieja del código aunque lo hayas pegado en el editor.
+Lo único que sigue "recordado para siempre" es qué fotos ya se hicieron públicas en Drive (para no perder tiempo revisando el permiso de una foto que ya se sabe que está bien) — eso no afecta que los datos se vean actualizados.
+
+**Importante:** cada vez que actualices `Code.gs` con una mejora nueva, tenés que volver a hacer **Implementar → Administrar implementaciones → lápiz ✏️ → Nueva versión → Implementar** (paso 2) — si no, el sitio sigue usando la versión vieja del código aunque lo hayas pegado en el editor. (Si tenés activado el despliegue automático, esto pasa solo.)
 
 ### Productos con varias medidas/variantes en una sola publicación
 
