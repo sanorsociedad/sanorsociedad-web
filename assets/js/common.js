@@ -46,7 +46,7 @@
       <div class="container footer-grid">
         <div class="footer-brand">
           <img src="assets/img/logo.png" alt="Sanor">
-          <p>Distribuidora y fabricante de productos sanitarios. Venta exclusiva a mayoristas y distribuidores.</p>
+          <p>Distribuidora y fabricante de productos sanitarios. Venta exclusiva a negocios del rubro.</p>
         </div>
         <div class="footer-col">
           <h4>Navegación</h4>
