@@ -12,10 +12,9 @@
     `;
   }
 
-  function renderFeatured(imagesByCategory) {
+  function renderFeatured(featured, imagesByCategory) {
     const el = document.getElementById("featured-categories");
     if (!el) return;
-    const featured = SANOR_CONFIG.FEATURED_CATEGORIES || SANOR_CONFIG.CATEGORIES.slice(0, 6);
     el.innerHTML = featured
       .map((cat) => categoryCard(cat, imagesByCategory[cat]))
       .join("");
@@ -36,26 +35,37 @@
   }
 
   async function loadFeaturedImages() {
-    const imagesByCategory = {};
     if (!SANOR_CONFIG.APPS_SCRIPT_URL || SANOR_CONFIG.APPS_SCRIPT_URL.startsWith("PEGAR_AQUI")) {
-      renderFeatured(imagesByCategory);
+      renderFeatured(SANOR_CONFIG.CATEGORIES.slice(0, 6), {});
       return;
     }
     try {
       const data = await SanorAPI.getCatalog();
-      // Respaldo: si una categoría todavía no tiene foto propia en Drive/Categorías,
-      // usamos la primera foto de producto que encontremos en esa categoría.
+      const categoryImages = data.categoryImages || {};
+      // Las categorías destacadas de la home son las que tienen foto propia
+      // en la carpeta de Drive "Categorías" — para cambiarlas alcanza con
+      // subir/sacar fotos ahí, sin tocar código. Máximo 6.
+      const featured = Object.keys(categoryImages).slice(0, 6);
+
+      if (featured.length) {
+        renderFeatured(featured, categoryImages);
+        return;
+      }
+
+      // Respaldo (todavía no subieron ninguna foto a "Categorías"): usamos
+      // las categorías configuradas y, si hay, la primera foto de producto
+      // de cada una.
+      const imagesByCategory = {};
       data.products.forEach((p) => {
         if (p.images && p.images.length && !imagesByCategory[p.categoria]) {
           imagesByCategory[p.categoria] = p.images[0];
         }
       });
-      // Las fotos dedicadas de categoría (carpeta "Categorías") tienen prioridad.
-      Object.assign(imagesByCategory, data.categoryImages || {});
+      renderFeatured(SANOR_CONFIG.FEATURED_CATEGORIES || SANOR_CONFIG.CATEGORIES.slice(0, 6), imagesByCategory);
     } catch (err) {
       console.warn("No se pudo cargar el catálogo para la home:", err);
+      renderFeatured(SANOR_CONFIG.CATEGORIES.slice(0, 6), {});
     }
-    renderFeatured(imagesByCategory);
   }
 
   document.addEventListener("DOMContentLoaded", () => {
